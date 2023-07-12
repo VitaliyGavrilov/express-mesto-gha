@@ -18,9 +18,8 @@ app.use((req, res, next) => {
   };
   next();
 });
-// испоьзуем роуты
-app.use('/users', require('./routes/users'));// для данных пользователей
-app.use('/cards', require('./routes/cards'));// для данных карточек
+// испоьзуем роут
+app.use('/', require('./routes/router'));
 // слушатель
 app.listen(PORT, () => {
   console.log(`Сервер по адресу ${BASE_PATH} работает, порт: ${PORT}`);
