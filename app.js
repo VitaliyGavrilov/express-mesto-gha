@@ -6,9 +6,11 @@ const console = require('console');// шоб линтер не ругался к
 const { PORT = 3000, BASE_PATH = 'http://localhost:3000', MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;// переменные окружения
 const app = express();
 // подключаемся к бд
-mongoose.connect(MONGO_URL);
-
-app.use(express.json());
+mongoose.connect(MONGO_URL)
+  .then(() => console.log('Мы подлюченны к MongoDB'))
+  .catch((err) => console.log(`Мы не подлюченны к MongoDB, ошибка: ${err}`));
+// типо говорим с каким форматом данных будет работать наш сервер
+app.use(express.json()); // анализирует входящие запросы JSON и помещает данные в req.body.
 // Миделвэр, добавляет в каждый запрос объект user, для карточек
 app.use((req, res, next) => {
   req.user = {
@@ -17,9 +19,9 @@ app.use((req, res, next) => {
   next();
 });
 // испоьзуем роуты
-app.use('/users', require('./routes/users'));// для данных фильмов
+app.use('/users', require('./routes/users'));// для данных пользователей
+app.use('/cards', require('./routes/cards'));// для данных карточек
 // слушатель
 app.listen(PORT, () => {
-  console.log('Ссылка на сервер');
-  console.log(BASE_PATH);
+  console.log(`Сервер по адресу ${BASE_PATH} работает, порт: ${PORT}`);
 });
