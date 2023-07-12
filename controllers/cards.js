@@ -19,9 +19,7 @@ module.exports.getCards = (req, res) => {
 // POST /cards — создаёт карточку
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
-  // const userId = req.user._id;
-  const owner = req.user.cardId;
-  Card.create({ name, link, owner })
+  Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(CREATED).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
