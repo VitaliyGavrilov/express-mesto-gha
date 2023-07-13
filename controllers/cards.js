@@ -9,11 +9,7 @@ module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(DATA_ERROR).send({ message: `Некорректные данные: ${err.message}` });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
-      }
+      res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
     });
 };
 // POST /cards — создаёт карточку
@@ -22,10 +18,10 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(CREATED).send({ data: card }))
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         res.status(DATA_ERROR).send({ message: `Некорректные данные: ${err.message}` });
       } else {
-        res.status(SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
+        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
       }
     });
 };
@@ -39,11 +35,11 @@ module.exports.deleteCard = (req, res) => {
         res.status(OK).send({ data: card });
       }
     })
-    .catch(() => {
-      if (!req.params.cardId.isValid) {
-        res.status(DATA_ERROR).send({ message: 'Некорректный _id карточки' });
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(DATA_ERROR).send({ message: `Некорректный _id карточки: ${err.message}` });
       } else {
-        res.status(SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
+        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
       }
     });
 };
@@ -58,10 +54,10 @@ module.exports.likeCard = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(DATA_ERROR).send({ message: 'Переданы некорректные данные для постановки лайка' });
+      if (err.name === 'CastError') {
+        res.status(DATA_ERROR).send({ message: `Некорректный _id карточки: ${err.message}` });
       } else {
-        res.status(SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
+        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
       }
     });
 };
@@ -76,10 +72,10 @@ module.exports.dislikeCard = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(DATA_ERROR).send({ message: 'Переданы некорректные данные для удаления лайка' });
+      if (err.name === 'CastError') {
+        res.status(DATA_ERROR).send({ message: `Некорректный _id карточки: ${err.message}` });
       } else {
-        res.status(SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
+        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
       }
     });
 };
