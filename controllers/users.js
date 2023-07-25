@@ -2,109 +2,101 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');// импортируем модель пользователей
+// импортируем ошибки и статусы ответов
+const ConflictError = require('../errors/conflict-err');
+const BadRequestError = require('../errors/bad-request-err');
+const NotFoundError = require('../errors/not-found-err');
 const {
-  CREATED, NOT_FOUND, OK, DATA_ERROR, SERVER_ERROR,
-} = require('../const/error');// импортируем ошибки
+  CREATED, OK,
+} = require('../const/responses');
 // Создаем контролеры для взаимодейтвия с данными пользователей и сразу экспортируем их
 // GET /users — возвращает всех пользователей
-module.exports.getUsers = (req, res) => { // создаем контролер для гет-запроса всех пользователей
+module.exports.getUsers = (req, res, next) => { // для гет-запроса всех пользователей
   User.find({})
-    .then((users) => res.send(users))
-    .catch((err) => {
-      res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
-    });
+    .then((users) => res.status(OK).send(users))
+    .catch(next);// переходим в централизованный обработчик ошибок
 };
 // GET /users/:userId - возвращает пользователя по _id
-module.exports.getUserById = (req, res) => { // создаем контролер для гет-запроса пользователя по id
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .then((user) => {
-      if (!user) {
-        res.status(NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
+      if (!user) { // если такого пользователя нет, сгенерируем исключение
+        throw new NotFoundError('Нет пользователя с таким id');
       } else {
         res.status(OK).send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(DATA_ERROR).send({ message: `Некорректный _id пользователя: ${err.message}` });
+        next(new BadRequestError('Ошибка поиска пользователя, передан некорректный id'));
       } else {
-        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
+        next(err);
       }
     });
 };
 // GET /users/me - возвращает информацию о текущем пользователе
-module.exports.getCurrentUser = (req, res) => {
-  User.findById(req.user._id)
-    .then((selectedUser) => {
-      if (!selectedUser) {
-        res.status(NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
-      } else {
-        res.status(OK).send(selectedUser);
-      }
-    })
-    .catch((err) => {
-      res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
-    });
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id) // так как контролер не достпен до авторизации, ошибки не возможны
+    .then((selectedUser) => res.status(OK).send(selectedUser))
+    .catch(next);// переходим в централизованный обработчик ошибок
 };
 // PATCH /users/me — обновляет профиль
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const owner = req.user._id;
   User.findByIdAndUpdate(owner, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
+        throw new NotFoundError('Нет пользователя с таким id');
       } else {
         res.status(OK).send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(DATA_ERROR).send({ message: `Некорректные данные: ${err.message}` });
+        next(new BadRequestError('Ошибка обновления данных профиля, переданы некорректные данные'));
       } else {
-        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
+        next(err);
       }
     });
 };
 // PATCH /users/me/avatar — обновляет аватар
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const owner = req.user._id;
   User.findByIdAndUpdate(owner, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
+        throw new NotFoundError('Нет пользователя с таким id');
       } else {
         res.status(OK).send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(DATA_ERROR).send({ message: `Некорректные данные: ${err.message}` });
+        next(new BadRequestError('Ошибка обновления автара, переданы некорректные данные'));
       } else {
-        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
+        next(err);
       }
     });
 };
 // Создаем контролеры для создания пользователя и входа в аккаунт
 // POST /signin — вход в аккаунт
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   // деструктуризацие получаем данные из тела запроса
   const { email, password } = req.body;
-  // создаем пользователя
+  // создаем пользователя мотодом модели
   return User.findUserByCredentials(email, password)
     .then((user) => {
       res.send({
         token: jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' }),
       });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 // POST /signup — регистрация, создаёт пользователя
-module.exports.createUser = (req, res) => { // создаем контролер для пост-запроса
+module.exports.createUser = (req, res, next) => { // создаем контролер для пост-запроса
   // деструктуризацие получаем данные из тела запроса
   const {
     name, about, avatar, email, password,
@@ -122,9 +114,11 @@ module.exports.createUser = (req, res) => { // создаем контролер
     // обрабатываем ошибки
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(DATA_ERROR).send({ message: `Некорректные данные: ${err.message}` });
+        next(new BadRequestError('Ошибка регистрации, переданы некорректные данные'));
+      } else if (err.code === 11000) {
+        next(new ConflictError('Ошибка регистрации, пользователь с указанной почтой уже существует'));
       } else {
-        res.status(SERVER_ERROR).send({ message: `Внутренняя ошибка сервера: ${err.message}` });
+        next(err);
       }
     });
 };

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');// подключаем монго
 const validator = require('validator');// подключаем валидатор
 const bcrypt = require('bcryptjs');
+const UnauthorizedError = require('../errors/unauthorized-err');
 // создаем схему пользователя
 const userSchema = new mongoose.Schema({
   name: {
@@ -41,20 +42,21 @@ const userSchema = new mongoose.Schema({
     select: false, // необходимо добавить поле select, чтобы API не возвращал хеш пароля
   },
 });
-// добавляем метод для схемы, он проверяет почту и пароль
+// добавляем метод для схемы, он проверяет почту и пароль при входе в аккаунт
+// eslint-disable-next-line func-names
 userSchema.statics.findUserByCredentials = function (email, password) {
   // ищем пользователя по почте
   return this.findOne({ email }).select('+password')
     // если пользователя с такой почтой нет
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
       }
       // если есть - сравниваем хеши
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
           }
           // получаем пользователя
           return user;

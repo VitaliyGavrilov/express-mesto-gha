@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-// мидлвэр для авторизации
+// мидлвэр для авторизации, что бы каждый раз не логиниться
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
   // достаём авторизационный заголовок
