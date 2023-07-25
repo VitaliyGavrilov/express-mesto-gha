@@ -118,6 +118,6 @@ module.exports.createUser = (req, res, next) => { // создаем контро
       } else if (err.code === 11000) {
         next(new ConflictError('Ошибка регистрации, пользователь с указанной почтой уже существует'));
       }
-      next(err);
+      // next(err);
     });
 };
