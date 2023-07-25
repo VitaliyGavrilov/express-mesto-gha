@@ -86,7 +86,7 @@ module.exports.updateAvatar = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   // деструктуризацие получаем данные из тела запроса
   const { email, password } = req.body;
-  // создаем пользователя мотодом модели
+  // проверяем данные методом модели
   return User.findUserByCredentials(email, password)
     .then((user) => {
       res.send({
@@ -117,8 +117,7 @@ module.exports.createUser = (req, res, next) => { // создаем контро
         next(new BadRequestError('Ошибка регистрации, переданы некорректные данные'));
       } else if (err.code === 11000) {
         next(new ConflictError('Ошибка регистрации, пользователь с указанной почтой уже существует'));
-      } else {
-        next(err);
       }
+      next(err);
     });
 };
