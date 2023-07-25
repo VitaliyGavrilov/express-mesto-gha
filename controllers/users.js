@@ -37,8 +37,8 @@ module.exports.getUserById = (req, res, next) => {
 };
 // GET /users/me - возвращает информацию о текущем пользователе
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.user.userId) // так как контролер не достпен до авторизации, ошибки не возможны
-    .then((selectedUser) => res.status(OK).send({ data: selectedUser }))
+  User.findById(req.user._id._id) // так как контролер не достпен до авторизации, ошибки не возможны
+    .then((selectedUser) => res.status(OK).send({ selectedUser }))
     .catch(next);// переходим в централизованный обработчик ошибок
 };
 // PATCH /users/me — обновляет профиль
