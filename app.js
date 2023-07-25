@@ -2,6 +2,7 @@
 const express = require('express');// сервер
 const mongoose = require('mongoose');// бд
 const console = require('console');// шоб линтер не ругался как бабка
+const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const { createUser, login } = require('./controllers/users');// импортируем контролеры для логина и регистрации
 const { validateLogin, validateCreateUser } = require('./middlewares/validation');// Валидация для логина и пароля
@@ -22,6 +23,8 @@ app.post('/signup', validateCreateUser, createUser);
 app.use(auth);
 // испоьзуем биг-роут, в нем идут роуты которым нужна авторизаци
 app.use('/', require('./routes/router'));
+// обработчики ошибок
+app.use(errors()); // обработчик ошибок celebrate
 // подключаем централизованный обработчик ошибок
 app.use(require('./middlewares/errorHandling'));
 // слушатель
