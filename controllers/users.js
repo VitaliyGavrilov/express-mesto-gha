@@ -95,33 +95,6 @@ module.exports.login = (req, res, next) => {
     })
     .catch(next);
 };
-// POST /signup — регистрация, создаёт пользователя
-module.exports.createUser = (req, res, next) => { // создаем контролер для пост-запроса
-  // деструктуризацие получаем данные из тела запроса
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
-  // хеширование пароля
-  bcrypt.hash(password, 10)
-    // создаем пользователя
-    .then((hash) => User.create({
-      name, about, avatar, email, password: hash,
-    }))
-    // отправляем ответ= данные созданного пользователя, без пароля
-    .then((user) => res.status(CREATED).send({
-      _id: user._id, name, about, avatar, email,
-    }))
-    // обрабатываем ошибки
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Ошибка регистрации, переданы некорректные данные'));
-      } else if (err.code === 11000) {
-        next(new ConflictError('Ошибка регистрации, пользователь с указанной почтой уже существует'));
-      } else {
-        next(err);
-      }
-    });
-};
 // Создание пользователя (Регистрация)
 module.exports.registerUser = (req, res, next) => {
   const {
