@@ -37,7 +37,7 @@ module.exports.getUserById = (req, res, next) => {
 };
 // GET /users/me - возвращает информацию о текущем пользователе
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id) // так как контролер не достпен до авторизации, ошибки не возможны
+  User.findById(req.user.userId) // так как контролер не достпен до авторизации, ошибки не возможны
     .then((selectedUser) => res.status(OK).send({ data: selectedUser }))
     .catch(next);// переходим в централизованный обработчик ошибок
 };
