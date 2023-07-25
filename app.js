@@ -4,7 +4,7 @@ const mongoose = require('mongoose');// бд
 const console = require('console');// шоб линтер не ругался как бабка
 const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
-const { login, registerUser } = require('./controllers/users');// импортируем контролеры для логина и регистрации
+const { createUser, login } = require('./controllers/users');// импортируем контролеры для логина и регистрации
 const { validateLogin, validateCreateUser } = require('./middlewares/validation');// Валидация для логина и пароля
 // задаем переменные окружения
 const { PORT = 3000, BASE_PATH = 'http://localhost:3000', MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;// переменные окружения
@@ -18,8 +18,7 @@ mongoose.connect(MONGO_URL)
 app.use(express.json()); // анализирует входящие запросы JSON и помещает данные в req.body.
 // используем контролеры для логина и регистрации, им не нужна авторизация
 app.post('/signin', validateLogin, login);
-// app.post('/signup', validateCreateUser, createUser);
-app.post('/signup', validateCreateUser, registerUser);
+app.post('/signup', validateCreateUser, createUser);
 // авторизация
 app.use(auth);
 // испоьзуем биг-роут, в нем идут роуты которым нужна авторизаци
