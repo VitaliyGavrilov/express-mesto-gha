@@ -117,7 +117,29 @@ module.exports.createUser = (req, res, next) => { // создаем контро
         next(new BadRequestError('Ошибка регистрации, переданы некорректные данные'));
       } else if (err.code === 11000) {
         next(new ConflictError('Ошибка регистрации, пользователь с указанной почтой уже существует'));
+      } else {
+        next(err);
       }
-      // next(err);
+    });
+};
+// Создание пользователя (Регистрация)
+module.exports.registerUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  const passwordHash = bcrypt.hash(password, 10);
+  passwordHash.then((hash) => User.create({
+    name, about, avatar, email, password: hash,
+  }))
+    // Не передаём пароль в ответе
+    .then(() => res.status(CREATED).send({
+      name, about, avatar, email,
+    }))
+    .catch((error) => {
+      if (error instanceof 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+      } else if (error.code === 11000) {
+        next(new ConflictError('Пользователь с указанной почтой уже есть в системе'));
+      } else { next(error); }
     });
 };
