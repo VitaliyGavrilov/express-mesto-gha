@@ -20,6 +20,7 @@ module.exports = (req, res, next) => {
   }
   // записываем пейлоуд в объект запроса
   req.user = payload;
+  console.log(req.user);
   // пропускаем запрос дальше
   next();
 };

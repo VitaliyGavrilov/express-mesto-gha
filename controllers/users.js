@@ -36,12 +36,11 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 // GET /users/me - возвращает информацию о текущем пользователе
-module.exports.getCurrentUser = (req, res) => {
-  const userId = req.user._id;
-  res.status(OK).send(userId);
-  // User.findById(userId)
-  //   .then((selectedUser) => res.status(OK).send(selectedUser))
-  //   .catch(next);// переходим в централизованный обработчик ошибок
+module.exports.getCurrentUser = (req, res, next) => {
+  // const { userId } = req.user._id;
+  User.findById(req.user._id)
+    .then((selectedUser) => res.status(OK).send(selectedUser))
+    .catch(next);// переходим в централизованный обработчик ошибок
 };
 // PATCH /users/me — обновляет профиль
 module.exports.updateProfile = (req, res, next) => {
