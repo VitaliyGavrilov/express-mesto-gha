@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator: (url) => validator.isURL(url),
-      message: 'Некорректная ссылка на аватар',
+      message: 'Некорректная ссылка на аватар пользователя',
     },
   },
   email: {
@@ -43,8 +43,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 // добавляем метод для схемы, он проверяет почту и пароль при входе в аккаунт
-// eslint-disable-next-line func-names
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
   // ищем пользователя по почте
   return this.findOne({ email }).select('+password')
     // если пользователя с такой почтой нет

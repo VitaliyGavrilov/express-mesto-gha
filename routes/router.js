@@ -7,8 +7,8 @@ const NotFoundError = require('../errors/not-found-err');// импорт оши�
 router.use('/users', userRouter);
 router.use('/cards', cardRouter);
 // На случай запроса на неправильный путь
-router.use('*', () => {
-  throw new NotFoundError('Страница не найдена');
+router.use('*', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
 });
 // Экспорт биг-роута
 module.exports = router;
