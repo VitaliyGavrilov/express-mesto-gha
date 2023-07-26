@@ -9,11 +9,11 @@ module.exports = (req, res, next) => {
     return res.status(401).send({ message: 'Необходима авторизация' });
   }
   // Избавляемся от Bearer и записываем токен
-  const token = authorization.replace('Bearer ', '');
+  const userToken = authorization.replace('Bearer ', '');
   let payload;
   // попытаемся верифицировать токен
   try {
-    payload = jwt.verify(token, '123456789');
+    payload = jwt.verify(userToken, '123456789');
   } catch (err) {
     // отправим ошибку, если не получилось
     return res.status(401).send({ message: 'Необходима авторизация' });
