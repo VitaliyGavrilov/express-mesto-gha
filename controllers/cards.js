@@ -29,14 +29,17 @@ module.exports.createCard = (req, res, next) => {
 };
 // DELETE /cards/:cardId — удаляет карточку по идентификатору
 module.exports.deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  const { cardId } = req.params;
+  Card.findById(cardId)
     .then((card) => {
-      if (!card) {
+      if (!card) { // проверяем наличие
         throw new NotFoundError('Нет карточки с таким id');
-      } else if (card.owner.toString() !== req.user._id) {
+      } else if (card.owner.toString() !== req.user._id) { // проверяем авторство
         throw new ForbiddenError('Вы не являетесь автором карточки, удаление невозможно');
-      } else {
-        res.status(OK).send({ data: card });
+      } else { // если карточка есть и пользовтель-автор, то удаляем
+        Card.findByIdAndRemove(cardId)
+          .then((usersCard) => res.status(OK).send({ data: usersCard }))
+          .catch(next);
       }
     })
     .catch((err) => {
